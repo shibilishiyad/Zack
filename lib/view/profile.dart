@@ -1,64 +1,121 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:zack_shoping/controllers/provider/notification_provider.dart';
+import 'package:zack_shoping/view/notification.dart';
 
-import 'package:zack_shoping/view/home.dart';
+import 'package:zack_shoping/view/settings.dart';
 
 class ProfilePage extends StatelessWidget {
   const ProfilePage({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final notificationProvider = Provider.of<NotificationProvider>(context);
+
     return Scaffold(
+      backgroundColor: Colors.white,
       appBar: AppBar(
+        backgroundColor: Colors.white,
         title: const Text('Profile'),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () {
-            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => const HomeScreen(),
-                              ),
-                            ); // Go back to the previous screen
-          },
-        ),
+        actions: [
+          Stack(
+            children: [
+              IconButton(
+                icon: const Icon(Icons.notifications),
+                onPressed: () {
+                  // if (notificationProvider.hasNewNotifications) {
+                  //   notificationProvider.clearNotifications();
+                  // }
+                  // ScaffoldMessenger.of(context).showSnackBar(
+                  //   SnackBar(
+                  //     content: Text(
+                  //       notificationProvider.hasNewNotifications
+                  //           ? "You have new notifications!"
+                  //           : "No new notifications",
+                  //     ),
+                  //   ),
+                  // );
+                     Navigator.push(
+                                context,
+                                PageRouteBuilder(
+                                  pageBuilder:
+                                      (context, animation, secondaryAnimation) =>
+                                         NotificationPage(),
+                                  transitionsBuilder: (context, animation,
+                                      secondaryAnimation, child) {
+                                    return FadeTransition(
+                                      opacity: animation,
+                                      child: child,
+                                    );
+                                  },
+                                ),
+                              );
+                },
+              ),
+              if (notificationProvider.hasNewNotifications)
+                Positioned(
+                  top: 8,
+                  right: 8,
+                  child: CircleAvatar(
+                    radius: 6,
+                    backgroundColor: Colors.red,
+                  ),
+                ),
+            ],
+          ),
+        ],
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
-            Center(
-              child: CircleAvatar(
-                radius: 50,
-                backgroundColor: Colors.grey[300], // Background color of the avatar
-                child: const Icon(
-                  Icons.person, // Person icon inside the avatar
-                  size: 50,
-                  color: Colors.white, // Color of the icon
+            Column(
+              mainAxisAlignment: MainAxisAlignment.center, 
+              children: [
+                Align(
+                  alignment: Alignment(0.0, -0.5),
+                  child: CircleAvatar(
+                    radius: 50,
+                    backgroundImage: AssetImage('lib/Asset/image/shibili.jpeg'),
+                  ),
                 ),
-              ),
-            ),
-            const SizedBox(height: 16),
-            const Text(
-              'Shibili Shiyad', // Replace with the user's name
-              style: TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'shibili@example.com', // Replace with the user's email
-              style: TextStyle(
-                fontSize: 16,
-                color: Colors.grey[600],
-              ),
+                const SizedBox(height: 16),
+                const Text(
+                  'Shibili Shiyad',
+                  style: TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                 Text(
+                  'shibili@example.com',
+                  style: TextStyle(
+                    fontSize: 16,
+                    color: Colors.grey[600],
+                  ),
+                ),
+              ],
             ),
             const SizedBox(height: 32),
             ListTile(
               leading: const Icon(Icons.person),
               title: const Text('Account Settings'),
               onTap: () {
-                // Navigate to account settings
+                Navigator.push(
+                  context,
+                  PageRouteBuilder(
+                    pageBuilder: (context, animation, secondaryAnimation) =>
+                        Settings(),
+                    transitionsBuilder:
+                        (context, animation, secondaryAnimation, child) {
+                      return FadeTransition(
+                        opacity: animation,
+                        child: child,
+                      );
+                    },
+                  ),
+                );
               },
             ),
             ListTile(
@@ -88,4 +145,3 @@ class ProfilePage extends StatelessWidget {
     );
   }
 }
-

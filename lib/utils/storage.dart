@@ -17,6 +17,6 @@ Future<bool> checkLoginStatus() async {
 
 final GlobalKey<ScaffoldMessengerState> scaffoldMessengerKey =
     GlobalKey<ScaffoldMessengerState>();
-final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
+// final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
   // this is for generating navigatior key  ; global key is the key used in this whole project
 

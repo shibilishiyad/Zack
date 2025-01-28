@@ -1,8 +1,9 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:video_player/video_player.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:zack_shoping/view/home.dart';
-import 'package:zack_shoping/view/sigin.dart';
+import 'package:zack_shoping/view/bottombar.dart';
+import 'package:zack_shoping/view/login.dart';
 
 // Create a storage instance for login data
 const storage = FlutterSecureStorage();
@@ -17,91 +18,73 @@ class VideoScreen extends StatefulWidget {
 class VideoScreenState extends State<VideoScreen> {
   late VideoPlayerController _controller;
   bool _isInitialized = false;
-  bool _isMuted = false;
+  bool _hasNavigated = false; // To prevent multiple navigation calls
 
   @override
   void initState() {
     super.initState();
     _controller =
-        VideoPlayerController.asset('lib/Asset/video/1717047772839705.mp4')
+        VideoPlayerController.asset('lib/Asset/video/1730817185246958.mp4')
           ..initialize().then((_) {
             setState(() {
               _isInitialized = true;
             });
-            _controller.setLooping(false); // Only play the video once
+            _controller.setLooping(false);
             _controller.play();
-            _controller.addListener(_checkVideoPosition);
+            _controller.addListener(_checkVideoCompletion);
           });
   }
 
   @override
   void dispose() {
-    _controller.removeListener(_checkVideoPosition);
+    _controller.removeListener(_checkVideoCompletion);
     _controller.dispose();
     super.dispose();
   }
 
-  // Check video position and navigate after 20 seconds or when video ends
-  void _checkVideoPosition() {
-    if (_controller.value.position.inSeconds >= 20 || 
-        _controller.value.position >= _controller.value.duration) {
+  // Check if video has completed and navigate
+  void _checkVideoCompletion() {
+    if (_controller.value.position >= _controller.value.duration) {
       _navigateToNextScreen();
     }
   }
 
   // Method to check login status and navigate accordingly
   Future<void> _navigateToNextScreen() async {
-    String? isLogged = await storage.read(key: 'isLogged'); // Read login status
-
-    if (mounted) {
+    if (mounted && !_hasNavigated) {
+      _hasNavigated = true; // Ensure this is called only once
       _controller.pause(); // Pause video playback
 
-      if (isLogged != null) {
-        // If logged in, navigate to the home screen
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => const HomeScreen()),
-        );
-      } else {
-        // If not logged in, navigate to the login screen
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => Loginscreen()),
-        );
-      }
-    }
-  }
+      await Future.delayed(Duration(milliseconds: 100));
 
-  // Toggle mute/unmute
-  void _toggleMute() {
-    setState(() {
-      if (_isMuted) {
-        _controller.setVolume(1.0);
-      } else {
-        _controller.setVolume(0.0);
-      }
-      _isMuted = !_isMuted;
-    });
-  }
-
-  // Handle swipe up
-  void _onVerticalDragEnd(DragEndDetails details) {
-    if (details.primaryVelocity! < 0) {
-      // User swiped up, navigate to the next screen
-      _navigateToNextScreen();
+      // Check the Firebase authentication state
+      FirebaseAuth.instance.authStateChanges().listen((User? user) {
+        if (user != null) {
+          // If the user is logged in, navigate to the home screen (ExploreScreen)
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+                builder: (context) => MainBottombar(initialIndex: 0)),
+          );
+        } else {
+          // If the user is not logged in, navigate to the login screen
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+                builder: (context) => Loginscreen()), // Your login screen
+          );
+        }
+      });
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final size = MediaQuery.of(context).size;
-
     return Scaffold(
-      body: GestureDetector(
-        onVerticalDragEnd: _onVerticalDragEnd, // Detect swipe up
-        child: Stack(
-          children: [
-            Container(
+      body: Stack(
+        children: [
+          Positioned.fill(
+            child: Container(
               color: Colors.black,
               child: Center(
                 child: _isInitialized
@@ -118,43 +101,8 @@ class VideoScreenState extends State<VideoScreen> {
                     : const CircularProgressIndicator(), // Show loading indicator
               ),
             ),
-            // Mute/Unmute Button
-            Positioned(
-              top: size.height * 0.05,
-              right: size.width * 0.05,
-              child: IconButton(
-                icon: Icon(
-                  _isMuted ? Icons.volume_off : Icons.volume_up,
-                  color: Colors.white,
-                  size: 30,
-                ),
-                onPressed: _toggleMute,
-              ),
-            ),
-            // Swipe Up Hint
-            Positioned(
-              bottom: size.height * 0.05,
-              left: 0,
-              right: 0,
-              child: const Column(
-                children: [
-                  Icon(
-                    Icons.keyboard_arrow_up,
-                    color: Colors.white,
-                    size: 30,
-                  ),
-                  Text(
-                    "Swipe up to explore",
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 16,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

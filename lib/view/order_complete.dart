@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:zack_shoping/view/home.dart';
-import 'package:zack_shoping/widgets/button.dart';
+import 'package:provider/provider.dart';
+import 'package:zack_shoping/controllers/provider/notification_provider.dart';
+import 'package:zack_shoping/view/display.dart';
+
 
 class OrderCompletePage extends StatefulWidget {
   const OrderCompletePage({super.key});
@@ -18,13 +20,11 @@ class _OrderCompletePageState extends State<OrderCompletePage>
   void initState() {
     super.initState();
 
-    // Initialize the animation controller
     _controller = AnimationController(
       duration: const Duration(seconds: 2),
       vsync: this,
     );
 
-    // Define the fade animation
     _fadeAnimation = Tween<double>(begin: 0, end: 1).animate(
       CurvedAnimation(
         parent: _controller,
@@ -32,7 +32,6 @@ class _OrderCompletePageState extends State<OrderCompletePage>
       ),
     );
 
-    // Start the animation
     _controller.forward();
   }
 
@@ -44,60 +43,77 @@ class _OrderCompletePageState extends State<OrderCompletePage>
 
   @override
   Widget build(BuildContext context) {
+      double screenWidth = MediaQuery.of(context).size.width;
     return Scaffold(
-      body: SafeArea(
-        child: FadeTransition(
-          opacity: _fadeAnimation,
+      backgroundColor: Colors.white,
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+      ),
+      body: FadeTransition(
+        opacity: _fadeAnimation,
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
           child: Column(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween, // Push content to top and bottom
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-           const   Column(
+              Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  
-                   Padding(
-                     padding: EdgeInsets.only(top: 160),
-                     child: Icon(
+                  const Padding(
+                    padding: EdgeInsets.only(top: 160),
+                    child: Icon(
                       Icons.check_circle_outline,
-                      color: Colors.green,
+                      color: Colors.black,
                       size: 100,
-                                       ),
-                   ),
-                   SizedBox(height: 20),
-                   Text(
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  const Text(
                     'Your order has been placed successfully!',
                     style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
-                      color: Colors.green,
+                      color: Colors.black,
                     ),
                   ),
-                   SizedBox(height: 10),
-                   Text(
+                  const SizedBox(height: 10),
+                  const Text(
                     'We value your trust in our products!',
                     style: TextStyle(fontSize: 16),
                   ),
                 ],
               ),
-              // Continue Shopping button at the bottom
               Padding(
-                padding: const EdgeInsets.all(16.0), // Add some padding for better spacing
-                child: SummaryWidget(
-                  subtotal: 0.0,
-                  shippingFee: 0.0,
-                  total: 0.0,
-                  showFullWidget: false, // Only show the button
-                  buttonText: 'Continue Shopping',
-                  onButtonPressed: () {
+                padding: const EdgeInsets.only(bottom: 60),
+                child: ElevatedButton(
+                  
+                  onPressed: () {
+                    
+                  context.read<NotificationProvider>().addNotification(
+                  ' New notification at ${DateTime.now()}',
+                );
+                
+                    
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => const HomeScreen(),
+                        builder: (context) => ProductDisplayPage(index: -1),
                       ),
                     );
                   },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.black,
+                     minimumSize: Size(screenWidth - 80, 50),
+                    
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(5)
+                    ),
+                    
+                  ),
+                  child: const Text('Continue Shopping',style: TextStyle(color: Colors.white,fontSize: 18),),
                 ),
               ),
+            
             ],
           ),
         ),

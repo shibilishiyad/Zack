@@ -1,30 +1,31 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:zack_shoping/controllers/provider/cart_provider.dart';
+import 'package:zack_shoping/controllers/provider/fav_provider.dart';
 import 'package:zack_shoping/widgets/cart_itemclass.dart';
 import 'package:zack_shoping/widgets/product_class.dart';
 
-import 'cart_page.dart'; // Import the CartPage
 
 class ProductDetailPage extends StatefulWidget {
   final Product product;
   final Function(CartItem) onAddToCart;
-  final Function(bool) onFavorite;
 
   const ProductDetailPage({
     super.key,
     required this.product,
     required this.onAddToCart,
-    required this.onFavorite,
   });
 
   @override
-  // ignore: library_private_types_in_public_api
   _ProductDetailPageState createState() => _ProductDetailPageState();
 }
 
 class _ProductDetailPageState extends State<ProductDetailPage> {
   final PageController _pageController = PageController();
   int _currentIndex = 0;
+
   List<CartItem> cartItems = []; // Initialize an empty cart
+  String _selectedSize = ''; // Track size
 
   void _slideLeft() {
     if (_currentIndex > 0) {
@@ -48,14 +49,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
     }
   }
 
-  void addToCart(Product product) {
-    final cartItem = CartItem(product: product);
-    setState(() {
-      cartItems.add(cartItem);
-    });
-    widget.onAddToCart(cartItem);
-  }
-
+ 
   void changeImage(int index) {
     setState(() {
       _currentIndex = index;
@@ -63,11 +57,56 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
     _pageController.jumpToPage(index);
   }
 
+  Widget _buildSizeButton(String size,
+      {bool available = true, bool fewLeft = false}) {
+    return GestureDetector(
+      onTap: available
+          ? () {
+              setState(() {
+                _selectedSize = size;
+              });
+            }
+          : null,
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 20),
+        decoration: BoxDecoration(
+          color: !available
+              ? Colors.grey[300]
+              : (_selectedSize == size ? Colors.black : Colors.white),
+          border: Border.all(
+            color: !available
+                ? Colors.grey
+                : (_selectedSize == size ? Colors.black : Colors.grey),
+          ),
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (fewLeft && available)
+              const Icon(Icons.circle, size: 10, color: Colors.red),
+            if (fewLeft && available) const SizedBox(width: 6),
+            Text(
+              size,
+              style: TextStyle(
+                color: !available
+                    ? Colors.grey
+                    : (_selectedSize == size ? Colors.white : Colors.black),
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white,
       appBar: AppBar(
-        backgroundColor: Colors.black12,
+        backgroundColor: Colors.white,
         title: Text(widget.product.name),
       ),
       body: Column(
@@ -75,7 +114,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
           Container(
             width: MediaQuery.of(context).size.width,
             color: Colors.white,
-            height: 450,
+            height: 380,
             child: Stack(
               alignment: Alignment.center,
               children: [
@@ -83,9 +122,36 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                   controller: _pageController,
                   itemCount: widget.product.imagePaths.length,
                   itemBuilder: (context, index) {
-                    return Image.asset(
-                      widget.product.imagePaths[index],
-                      fit: BoxFit.cover,
+                    return GestureDetector(
+                      onLongPress: () {
+                        showDialog(
+                          context: context,
+                          barrierDismissible: false,
+                          builder: (context) => GestureDetector(
+                            onTap: () {
+                              Navigator.of(context).pop();
+                            },
+                            child: Container(
+                              height: double.infinity, //popup image
+                              width: double.infinity,
+                              color: Colors.white,
+                              child: Center(
+                                child: Image.asset(
+                                  widget.product.imagePaths[index],
+                                  fit: BoxFit.cover,
+                                ),
+                              ),
+                            ),
+                          ),
+                        );
+                      },
+                      onLongPressUp: () {
+                        Navigator.of(context).pop();
+                      },
+                      child: Image.asset(
+                        widget.product.imagePaths[index],
+                        fit: BoxFit.contain,
+                      ),
                     );
                   },
                 ),
@@ -108,7 +174,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
               ],
             ),
           ),
-          const SizedBox(height: 40),
+          const SizedBox(height: 20),
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: List.generate(widget.product.imagePaths.length, (index) {
@@ -134,7 +200,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
               );
             }),
           ),
-          const SizedBox(height: 40),
+          const SizedBox(height: 10),
           Text(
             widget.product.name,
             style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
@@ -145,9 +211,31 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
           ),
           Text(
             '\$${widget.product.price}',
-            style: const TextStyle(fontSize: 20, color: Colors.green),
+            style: const TextStyle(fontSize: 20, color: Colors.black),
           ),
-          const Spacer(),
+          const SizedBox(height: 10),
+          const Padding(
+            padding: EdgeInsets.symmetric(horizontal: 16.0),
+            child: Align(
+              alignment: Alignment.centerLeft,
+              child: Text(
+                'Sizes',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+            ),
+          ),
+          Wrap(
+            spacing: 8.0,
+            runSpacing: 8.0,
+            children: [
+              _buildSizeButton('S', available: true),
+              _buildSizeButton('M', available: true),
+              _buildSizeButton('L', available: true),
+              _buildSizeButton('XL', available: true),
+              _buildSizeButton('XXL', available: true),
+            ],
+          ),
+          const SizedBox(height: 15),
           Padding(
             padding: const EdgeInsets.all(16.0),
             child: Row(
@@ -156,18 +244,29 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                 Expanded(
                   child: OutlinedButton.icon(
                     onPressed: () {
-                      // Add to wishlist logic
-                      widget.onFavorite(true);
+                      context
+                          .read<FavoriteProvider>()
+                          .toggleFavorite(widget.product);
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Added to Favorites')),
+                      );
                     },
-                    icon: const Icon(
-                      Icons.favorite_border,
+                    icon: Icon(
+                      context
+                              .watch<FavoriteProvider>()
+                              .isFavorited(widget.product)
+                          ? Icons.favorite
+                          : Icons.favorite_border,
                       color: Colors.white,
                     ),
                     label: const Text(
                       'WISHLIST',
-                      style: TextStyle(color: Colors.white),
+                      style: TextStyle(color: Colors.white, fontSize: 18),
                     ),
                     style: OutlinedButton.styleFrom(
+                      minimumSize: Size(120, 50),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(5)),
                       backgroundColor: Colors.black,
                       side: const BorderSide(color: Colors.white),
                       textStyle: const TextStyle(fontSize: 16),
@@ -178,23 +277,33 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                 Expanded(
                   child: ElevatedButton.icon(
                     onPressed: () {
-                      addToCart(widget.product);
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => CartPage(cartItems: cartItems),
-                        ),
-                      );
+                      if (_selectedSize.isEmpty) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text(
+                                'Please select a size before adding to cart'),
+                          ),
+                        );
+                      } else {
+                        context.read<CartProvider>().addToCart(widget.product);
+                         ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(content: Text('Added to cart!')),
+                              );
+                      }
                     },
                     icon: const Icon(
                       Icons.shopping_bag,
                       color: Colors.white,
+                      size: 25,
                     ),
                     label: const Text(
                       'ADD TO BAG',
-                      style: TextStyle(color: Colors.white),
+                      style: TextStyle(color: Colors.white, fontSize: 18),
                     ),
                     style: ElevatedButton.styleFrom(
+                      minimumSize: Size(120, 50),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(5)),
                       backgroundColor: Colors.black,
                       textStyle: const TextStyle(fontSize: 16),
                     ),

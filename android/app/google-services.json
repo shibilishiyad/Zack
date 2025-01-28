@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "812809640156",
+    "project_id": "zack-346df",
+    "storage_bucket": "zack-346df.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:812809640156:android:fe141e2a322d70a85fbc19",
+        "android_client_info": {
+          "package_name": "com.example.zack_shoping"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDM-9hq0fFBGx42OsmwqAdJ_G3j_AHR-GU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
